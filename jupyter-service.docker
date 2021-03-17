@@ -1,10 +1,25 @@
 FROM migraphx
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated \
-    jupyter && \
+    jupyter \
+    libsm6 \
+    libxrender-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /code/AMDMIGraphX/examples
+RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl && \
+    chmod a+rx /usr/local/bin/youtube-dl
+
+RUN mkdir -p /code && cd /code && \
+    git clone https://github.com/ROCmSoftwarePlatform/AMDMIGraphX
+
+WORKDIR /code/AMDMIGraphX
+
+RUN mkdir build && cd build && \
+    CXX=/opt/rocm/llvm/bin/clang++ cmake .. && \
+    make -j$(nproc) && \
+    make install
+
+ENV LD_LIBRARY_PATH="/opt/rocm/lib:${LD_LIBRARY_PATH}"
 
 CMD ["jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
