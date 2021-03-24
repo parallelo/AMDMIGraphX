@@ -1,0 +1,14 @@
+FROM migraphx
+
+RUN mkdir -p /code && cd /code && \
+    git clone https://github.com/ROCmSoftwarePlatform/AMDMIGraphX
+
+WORKDIR /code/AMDMIGraphX
+
+RUN mkdir build && cd build && \
+    CXX=/opt/rocm/llvm/bin/clang++ cmake .. && \
+    make -j$(nproc) && \
+    make install
+
+ENV LD_LIBRARY_PATH="/opt/rocm/lib:${LD_LIBRARY_PATH}"
+
